@@ -21,13 +21,8 @@
        <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
-         <widget class="QWidget" name="controlTab">
-          <attribute name="title">
-           <string>Control</string>
-          </attribute>
-         </widget>
          <widget class="QWidget" name="cameraTab">
           <attribute name="title">
            <string>Camera</string>
