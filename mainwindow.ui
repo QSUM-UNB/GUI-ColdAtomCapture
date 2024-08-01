@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Cold Atom Capture</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -41,34 +41,44 @@
                 <string>Settings</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_6">
-                <item alignment="Qt::AlignBottom">
-                 <widget class="QLabel" name="exposureLabel">
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>30</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Exposure Time (μs)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item alignment="Qt::AlignTop">
-                 <widget class="QSpinBox" name="exposureBox">
-                  <property name="maximumSize">
-                   <size>
-                    <width>75</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="minimum">
-                   <number>100</number>
-                  </property>
-                  <property name="maximum">
-                   <number>30000002</number>
-                  </property>
-                 </widget>
+                <item>
+                 <layout class="QHBoxLayout" name="exposureLayout">
+                  <item>
+                   <widget class="QLabel" name="exposureLabel">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>30</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Exposure Time (μs)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="exposureBox">
+                    <property name="minimumSize">
+                     <size>
+                      <width>100</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="minimum">
+                     <number>100</number>
+                    </property>
+                    <property name="maximum">
+                     <number>30000002</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -152,6 +162,34 @@
                  </layout>
                 </item>
                 <item>
+                 <layout class="QHBoxLayout" name="roiSelectionLayout">
+                  <item>
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>ROI Generation:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="roiAutoRadio">
+                    <property name="text">
+                     <string>Automatic</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="roiManualRadio">
+                    <property name="text">
+                     <string>Manual</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
                  <layout class="QHBoxLayout" name="sigmaLayout">
                   <item>
                    <widget class="QLabel" name="sigmaLabel">
@@ -176,6 +214,55 @@
                     </property>
                     <property name="minimum">
                      <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="roiManualLayout">
+                  <item>
+                   <widget class="QLabel" name="roiManualLabel">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>75</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>ROI Corners:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="roiTopLeftEdit">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="placeholderText">
+                     <string>x1,y1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="roiBottomRightEdit">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="inputMask">
+                     <string/>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="placeholderText">
+                     <string>x2,y2</string>
                     </property>
                    </widget>
                   </item>
@@ -292,7 +379,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="camStopButton">
+                <widget class="QPushButton" name="camUpdateButton">
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
@@ -300,7 +387,7 @@
                   </size>
                  </property>
                  <property name="text">
-                  <string>Stop</string>
+                  <string>Update</string>
                  </property>
                 </widget>
                </item>
@@ -309,7 +396,11 @@
             </layout>
            </item>
            <item>
-            <widget class="MplCanvasCam" name="camWidget" native="true"/>
+            <layout class="QVBoxLayout" name="camLayout">
+             <item>
+              <widget class="MplCanvasCam" name="camWidget" native="true"/>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>

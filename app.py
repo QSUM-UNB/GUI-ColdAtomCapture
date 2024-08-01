@@ -57,16 +57,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.runCount += 1
         else:
             self.runCount = 1
+        self.camUpdateButton.pressed.connect(self.updateCamera)
         self.camRunButton.pressed.connect(self.runCameraTrigger)
         self.camModeCombo.currentIndexChanged.connect(self.camModeChanged)
+        self.roiAutoRadio.toggled.connect(self.roiAutoChanged)
+        self.roiManualRadio.toggled.connect(self.roiManualChanged)
         toolbar = NavigationToolbar2QT(self.analysisWidget, self)
         self.analysisLayout.addWidget(toolbar)
+        toolbar = NavigationToolbar2QT(self.camWidget, self)
+        self.camLayout.addWidget(toolbar)
         curDay = curDate.day
         curMonth = curDate.month
         curYear = curDate.year
         dateObj = QtCore.QDate(curYear, curMonth, curDay)
         self.recallDateBox.setDate(dateObj)
         self.loadTofCheck.stateChanged.connect(self.loadTofChanged)
+        self.exposure = 0
+        self.sigFactor = 0
+        self.corners = [(0,0), (0,0)]
     def camModeChanged(self, index):
         change = True if index == 0 else False
         self.exposureBox.setEnabled(change)
@@ -76,6 +84,37 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loadTofBox.setEnabled(not change and self.loadTofCheck.isChecked())
     def loadTofChanged(self):
         self.loadTofBox.setEnabled(self.loadTofCheck.isChecked())
+    def roiAutoChanged(self, s):
+        self.sigmaBox.setEnabled(s)
+    def roiManualChanged(self, s):
+        self.roiTopLeftEdit.setEnabled(s)
+        self.roiBottomRightEdit.setEnabled(s)
+    def updateCamera(self):
+        self.exposure = self.exposureBox.value()
+        if self.roiAutoRadio.isChecked():
+            self.sigFactor = self.sigmaBox.value()
+        else:
+            topL = self.topLeftEdit.text().split(",")
+            bottomR = self.bottomRightEdit.text().split(",")
+            if 1 < len(topL) < 3 and 1 < len(bottomR) < 3:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "ROI Corners Warning",
+                    "Too little or too many numbers inputted. Did you follow 2D cartesian format?",
+                    buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                    defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
+                )
+            try:
+                self.corners = [(int(topL[0]), int(topL[1])), (int(bottomR[0]), int(bottomR[1]))]
+            except:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "ROI Corners Warning",
+                    "Error parsing the inputted ROI corners. Did you provide only integers?",
+                    buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                    defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
+                )
+            
     def runCameraTrigger(self):
         if self.tofStartBox.value() == 0.0 or self.tofEndBox.value() == 0.0 or self.tofSplitBox.value() == 0:
             QtWidgets.QMessageBox.warning(
@@ -93,7 +132,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.analysisWidget.axes[i][j].clear()
             os.makedirs(f"{self.trigPath}Run{self.runCount}")
             self.statusbar.showMessage("Initializing camera...")
-            self.camThread = Trigger.CamTrigger(self.tofSplitBox.value(), f"{self.trigPath}Run{self.runCount}/", self.exposureBox.value(), timeSplit, self.sigmaBox.value(), self)
+            self.camThread = Trigger.CamTrigger(self.tofSplitBox.value(), f"{self.trigPath}Run{self.runCount}/", timeSplit, self)
             self.runCount += 1
             self.camThread.start()
             
@@ -112,7 +151,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
                 )
                 return
-            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, self.tofSplitBox.value(), self, timeSplit, self.sigmaBox.value()])
+            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, self.tofSplitBox.value(), self, timeSplit])
             self.camThread.start()
 
 def main():

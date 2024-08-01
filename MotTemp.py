@@ -13,7 +13,7 @@ def Gaussian(x, amp, cen, wid, off):
 def Hyperbolic(x, s0, sv):
     return np.sqrt(s0**2 + (sv**2 * x**2))
 
-def main(baseDir, numImages, window, timeSplit, sigmaFactor):
+def main(baseDir, numImages, window, timeSplit):
     fileArr = []
     #backArr = []
     for e in range(numImages):
@@ -25,7 +25,7 @@ def main(baseDir, numImages, window, timeSplit, sigmaFactor):
     y_pos = [None]*len(fileArr)
     for i in range(0, len(fileArr)):
         window.statusbar.showMessage(f"Processing image {i+1} of {numImages}...")
-        plt_x[i], plt_y[i], x_pos[i], y_pos[i] = findStdDev(fileArr[i], sigmaFactor)
+        plt_x[i], plt_y[i], x_pos[i], y_pos[i] = findStdDev(fileArr[i], window.sigFactor)
     
     window.statusbar.showMessage("Fitting data...")
 

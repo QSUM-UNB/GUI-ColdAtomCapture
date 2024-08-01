@@ -52,13 +52,11 @@ class TriggerType:
 CHOSEN_TRIGGER = TriggerType.HARDWARE
 
 class CamTrigger(threading.Thread):
-    def __init__(self, numImages, trigPath, exposureTime, timeSplit, sigmaFactor, window):
+    def __init__(self, numImages, trigPath, timeSplit, window):
         threading.Thread.__init__(self, daemon=True)
         self.numImages = numImages
         self.trigPath = trigPath
-        self.exposureTime = exposureTime
         self.timeSplit = timeSplit
-        self.sigmaFactor = sigmaFactor
         self.window = window
     def run(self):
         self.main()
@@ -76,14 +74,14 @@ class CamTrigger(threading.Thread):
         print(stdx)
         print(stdy)
 
-        roi_x, roi_y = MotTemp.getROI(image, stdx, stdy, peakX, peakY, self.sigmaFactor)
+        roi_x, roi_y = MotTemp.getROI(image, stdx, stdy, peakX, peakY, self.window.sigFactor)
 
-        for j in range(max(0, math.floor(peakX - (stdx*self.sigmaFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*self.sigmaFactor)))):
+        for j in range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*self.window.sigFactor)))):
             image[max(0, peakY-(stdy))][j] = 65535
-            image[min(len(image)-1, peakY+(stdy*self.sigmaFactor))][j] = 65535
-        for i in range(max(0, math.floor(peakY - (stdy*self.sigmaFactor))), min(len(image), math.floor(peakY + (stdy*self.sigmaFactor))+1)):
-            image[i][max(0, peakX-(stdx*self.sigmaFactor))] = 65535
-            image[i][min(len(image[i])-1, peakX+(stdx*self.sigmaFactor))] = 65535
+            image[min(len(image)-1, peakY+(stdy*self.window.sigFactor))][j] = 65535
+        for i in range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)):
+            image[i][max(0, peakX-(stdx*self.window.sigFactor))] = 65535
+            image[i][min(len(image[i])-1, peakX+(stdx*self.window.sigFactor))] = 65535
 
         for i in range(len(image)):
             image[i][peakX] = 65535
@@ -98,8 +96,8 @@ class CamTrigger(threading.Thread):
 
         std_roi_x, std_roi_y = MotTemp.getROIStdDev(min_roi_x, min_roi_y)
 
-        x_pos = list(range(max(0, math.floor(peakX - (stdx*self.sigmaFactor))), min(len(image[0]), math.floor(peakX + (stdx*self.sigmaFactor)))))
-        y_pos = list(range(max(0, math.floor(peakY - (stdy*self.sigmaFactor))), min(len(image), math.floor(peakY + (stdy*self.sigmaFactor))+1)))
+        x_pos = list(range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[0]), math.floor(peakX + (stdx*self.window.sigFactor)))))
+        y_pos = list(range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)))
 
         mod = lm.Model(Gaussian)
         peak = roi_x.index(max(roi_x))
@@ -181,8 +179,8 @@ class CamTrigger(threading.Thread):
                 return False
 
             # Ensure desired exposure time does not exceed the maximum
-            cam.ExposureTime.SetValue(float(self.exposureTime))
-            print('Shutter time set to %s us...\n' % self.exposureTime)
+            cam.ExposureTime.SetValue(float(self.window.exposure))
+            print('Shutter time set to %s us...\n' % self.window.exposure)
 
             # Ensure trigger mode off
             # The trigger must be disabled in order to configure whether the source
@@ -636,7 +634,7 @@ class CamTrigger(threading.Thread):
         # Release system instance
         system.ReleaseInstance()
 
-        MotTemp.main(self.trigPath, self.numImages, self.window, self.timeSplit, self.sigmaFactor)
+        MotTemp.main(self.trigPath, self.numImages, self.window, self.timeSplit, self.window.sigFactor)
 
         return result
 
