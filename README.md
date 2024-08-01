@@ -9,15 +9,15 @@ In order to use the program, you must be running Python version 3.10. This can b
 
 There are also some packages required from PIP. Ensure the following is installed:
 
-|Packages|
-|--------|
-|PyQt6|
-|Matplotlib|
-|numpy|
-|opencv-python|
-|lmfit|
+|Packages|Last Working Version|
+|--------|----|
+|PyQt6|6.7.0|
+|Matplotlib|3.9.0|
+|numpy|1.26.4|
+|opencv-python|4.10.0.82|
+|lmfit|1.3.1|
 
-Finally, make sure that you have the Flir Spinnaker SDK installed along with the appropriate version of PySpin for Python 3.10 (this should either be bundled with or on the website for Spinnaker SDK). Further instructions can be found [here.](https://www.flir.ca/products/spinnaker-sdk/)
+Finally, make sure that you have the Flir Spinnaker SDK installed along with the appropriate version of PySpin for Python 3.10 (this should either be bundled with or on the website for Spinnaker SDK). Further instructions can be found [here.](https://www.flir.ca/products/spinnaker-sdk/) Both versions 3.1 and 4.1 have been known to work.
 
 ## Usage
 

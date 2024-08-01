@@ -236,6 +236,9 @@
                   </item>
                   <item>
                    <widget class="QLineEdit" name="roiTopLeftEdit">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>100</width>
@@ -249,6 +252,9 @@
                   </item>
                   <item>
                    <widget class="QLineEdit" name="roiBottomRightEdit">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>100</width>
