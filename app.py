@@ -94,9 +94,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.roiAutoRadio.isChecked():
             self.sigFactor = self.sigmaBox.value()
         else:
-            topL = self.topLeftEdit.text().split(",")
-            bottomR = self.bottomRightEdit.text().split(",")
-            if 1 < len(topL) < 3 and 1 < len(bottomR) < 3:
+            topL = self.roiTopLeftEdit.text().split(',')
+            bottomR = self.roiBottomRightEdit.text().split(',')
+            if not (1 < len(topL) < 3 and 1 < len(bottomR) < 3):
                 QtWidgets.QMessageBox.warning(
                     self,
                     "ROI Corners Warning",
@@ -113,8 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     "Error parsing the inputted ROI corners. Did you provide only integers?",
                     buttons=QtWidgets.QMessageBox.StandardButton.Ok,
                     defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
-                )
-            
+                )         
     def runCameraTrigger(self):
         if self.tofStartBox.value() == 0.0 or self.tofEndBox.value() == 0.0 or self.tofSplitBox.value() == 0:
             QtWidgets.QMessageBox.warning(
@@ -126,6 +125,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             return
         timeSplit = list(np.linspace(self.tofStartBox.value(), self.tofEndBox.value(), self.tofSplitBox.value()))
+        self.updateCamera()
         if self.camModeCombo.currentIndex() == 0:
             for i in range(3):
                 for j in range(2):
