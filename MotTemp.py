@@ -5,6 +5,7 @@ import math
 from lmfit.models import QuadraticModel, LinearModel
 import lmfit as lm
 from PyQt6.QtGui import QTextDocument
+import time
 
 def Gaussian(x, amp, cen, wid, off):
     """1-d Gaussian: gaussian(x, amp, cen, wid, off)"""
@@ -23,47 +24,17 @@ def main(baseDir, numImages, window, timeSplit):
     plt_y = [None]*len(fileArr)
     x_pos = [None]*len(fileArr)
     y_pos = [None]*len(fileArr)
+    amp = [None]*len(fileArr)
+    centre = [None]*len(fileArr)
+    sigma = [None]*len(fileArr)
+    yamp = [None]*len(fileArr)
+    ycentre = [None]*len(fileArr)
+    ysigma = [None]*len(fileArr)
     for i in range(0, len(fileArr)):
         window.statusbar.showMessage(f"Processing image {i+1} of {numImages}...")
-        plt_x[i], plt_y[i], x_pos[i], y_pos[i] = findStdDev(fileArr[i], window.sigFactor)
+        plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = findStdDev(fileArr[i], window)
     
     window.statusbar.showMessage("Fitting data...")
-
-    amp, centre, sigma = [], [], []
-    yamp, ycentre, ysigma = [], [], []
-    
-    for i in range(0, len(plt_x)):
-        np_x = np.asarray(plt_x[i])
-        np_y = np.asarray(plt_y[i])
-        min_x = list(np_x - min(plt_x[i]))
-        min_y = list(np_y - min(plt_y[i]))
-        std_plt_x, std_plt_y = getROIStdDev(min_x, min_y)
-        mod = lm.Model(Gaussian)
-        peak = plt_x[i].index(max(plt_x[i]))
-        p_amp = lm.Parameter(name='amp', value=plt_x[i][peak]-min(plt_x[i]))
-        p_cen = lm.Parameter(name='cen', value=(x_pos[i][peak]/17.62)/1000)
-        p_wid = lm.Parameter(name='wid', value=(std_plt_x/17.62)/1000)
-        p_off = lm.Parameter(name='off', value=min(plt_x[i]))
-        params = lm.Parameters()
-        params.add_many(p_amp, p_cen, p_wid, p_off)
-        out = mod.fit(np.array(plt_x[i]), params, x=np.array([(x/17.62)/1000 for x in x_pos[i]]))
-        vals = out.best_values
-        amp.append(vals['amp'])
-        centre.append(vals['cen'])
-        sigma.append(vals['wid'])
-        mod = lm.Model(Gaussian)
-        peak = plt_y[i].index(max(plt_y[i]))
-        p_amp = lm.Parameter(name='amp', value=plt_y[i][peak]-min(plt_y[i]))
-        p_cen = lm.Parameter(name='cen', value=(y_pos[i][peak]/17.62)/1000)
-        p_wid = lm.Parameter(name='wid', value=(std_plt_y/17.62)/1000)
-        p_off = lm.Parameter(name='off', value=min(plt_y[i]))
-        params = lm.Parameters()
-        params.add_many(p_amp, p_cen, p_wid, p_off)
-        out = mod.fit(np.array(plt_y[i]), params, x=np.array([(x/17.62)/1000 for x in y_pos[i]]))
-        vals = out.best_values
-        yamp.append(vals['amp'])
-        ycentre.append(vals['cen'])
-        ysigma.append(vals['wid'])
     
     axis_pts_ms = [x/1000 for x in timeSplit]
     runningString = ""
@@ -126,8 +97,11 @@ def main(baseDir, numImages, window, timeSplit):
     window.analysisWidget.axes[2][0].set_ylabel("Position (m)")
     window.analysisWidget.draw()
     window.statusbar.showMessage("Processing finished.")
+    window.tofStartBox.setEnabled(True)
+    window.tofEndBox.setEnabled(True)
+    window.tofSplitBox.setEnabled(True)
 
-def getIntegratedBins(image:np.ndarray) -> tuple[list,list]:
+def getIntegratedBins(image:np.ndarray) -> tuple[list[int],list[int]]:
     binx = []
     biny = []
     for i in range(0,len(image)):
@@ -144,7 +118,7 @@ def getIntegratedBins(image:np.ndarray) -> tuple[list,list]:
 
     return (binx, biny)
 
-def get1DArray(image:np.ndarray, peakX:int, peakY:int) -> tuple[list,list]:
+def get1DArray(image:np.ndarray, peakX:int, peakY:int) -> tuple[list[int],list[int]]:
     x1d = []
     y1d = []
     for j in range(0, len(image[peakY])):
@@ -162,7 +136,7 @@ def get1DSum(x1d:list, y1d:list) -> tuple[int, int]:
         ysum += e
     return (xsum, ysum)
 
-def getProbability(x1d:list, y1d:list, xsum:int, ysum:int) -> tuple[list,list]:
+def getProbability(x1d:list, y1d:list, xsum:int, ysum:int) -> tuple[list[float],list[float]]:
     px = []
     py = []
     for e in x1d:
@@ -189,13 +163,26 @@ def getVariance(px, py, mux, muy) -> tuple[float]:
         vary += py[i] * (i - muy)**2
     return (varx, vary)
 
-def getROI(image:np.ndarray, stdx:int, stdy:int, peakX:int, peakY:int, sigmaFactor:int) -> tuple[list, list]:
+def getROI(image:np.ndarray, stdx:int, stdy:int, peakX:int, peakY:int, sigmaFactor:int) -> tuple[list[int], list[int]]:
     roi_x = []
     roi_y = []
     for j in range(max(0, math.floor(peakX - (stdx*sigmaFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*sigmaFactor)))):
         roi_x.append(image[peakY][j])
     for i in range(max(0, math.floor(peakY - (stdy*sigmaFactor))), min(len(image), math.floor(peakY + (stdy*sigmaFactor))+1)):
         roi_y.append(image[i][peakX])
+    return (roi_x, roi_y)
+
+def getManualROI(image:np.ndarray, corners:list[tuple[int,int],tuple[int,int]], peakX:int, peakY:int) -> tuple[list[int],list[int]]:
+    x1, y1 = corners[0]
+    x2, y2 = corners[1]
+    
+    roi_x = []
+    roi_y = []
+    for j in range(x1, x2+1):
+        roi_x.append(image[peakY][j])
+    for i in range(y1, y2+1):
+        roi_y.append(image[i][peakX])
+
     return (roi_x, roi_y)
 
 def getStdDev(image:np.ndarray) -> tuple[float,float]:
@@ -214,20 +201,94 @@ def getROIStdDev(roi_x:list, roi_y:list) -> tuple[float,float]:
     stdy = math.sqrt(vary)
     return (stdx, stdy)
     
-def findStdDev(file, sigmaFactor):
+def findStdDev(file, window):
     image = cv2.imread(file, flags=cv2.IMREAD_ANYDEPTH)
     image = np.asarray(image, dtype=np.float64)
     binx, biny = getIntegratedBins(image)
     peakX = binx.index(max(binx))
     peakY = biny.index(max(biny))
-    stdx, stdy = getStdDev(image)
+    if window.isAuto:
+        stdx, stdy = getStdDev(image)
+        stdx = math.floor(stdx)
+        stdy = math.floor(stdy)
+        sigmaFactor = window.sigFactor
+        roi_x, roi_y = getROI(image, stdx, stdy, peakX, peakY, sigmaFactor)
+        for j in range(max(0, math.floor(peakX - (stdx*sigmaFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*sigmaFactor)))):
+            image[max(0, peakY-(stdy))][j] = 65535
+            image[min(len(image)-1, peakY+(stdy*sigmaFactor))][j] = 65535
+        for i in range(max(0, math.floor(peakY - (stdy*sigmaFactor))), min(len(image), math.floor(peakY + (stdy*sigmaFactor))+1)):
+            image[i][max(0, peakX-(stdx*sigmaFactor))] = 65535
+            image[i][min(len(image[i])-1, peakX+(stdx*sigmaFactor))] = 65535
+        x_pos = list(range(max(0, math.floor(peakX - (stdx*sigmaFactor))), min(len(image[0]), math.floor(peakX + (stdx*sigmaFactor)))))
+        y_pos = list(range(max(0, math.floor(peakY - (stdy*sigmaFactor))), min(len(image), math.floor(peakY + (stdy*sigmaFactor))+1)))
+    else:
+        roi_x, roi_y = getManualROI(image, window.corners, peakX, peakY)
+        x1, y1 = window.corners[0]
+        x2, y2 = window.corners[1]
+        for j in range(x1, x2+1):
+            image[y1][j] = 65535
+            image[y2][j] = 65535
+        for i in range(y1, y2+1):
+            image[i][x1] = 65535
+            image[i][x2] = 65535
+        x_pos = list(range(x1,x2+1))
+        y_pos = list(range(y1,y2+1))
 
-    stdx = math.floor(stdx)
-    stdy = math.floor(stdy)
+    for i in range(len(image)):
+        image[i][peakX] = 65535
+    for j in range(len(image[0])):
+        image[peakY][j] = 65535
 
-    roi_x, roi_y = getROI(image, stdx, stdy, peakX, peakY, sigmaFactor)
-
-    return (roi_x, roi_y, list(range(max(0, math.floor(peakX - (stdx*sigmaFactor))), min(len(image[0]), math.floor(peakX + (stdx*sigmaFactor))))), list(range(max(0, math.floor(peakY - (stdy*sigmaFactor))), min(len(image), math.floor(peakY + (stdy*sigmaFactor))+1))))
+    np_x = np.asarray(roi_x)
+    np_y = np.asarray(roi_y)
+    min_x = list(np_x - min(roi_x))
+    min_y = list(np_y - min(roi_y))
+    std_plt_x, std_plt_y = getROIStdDev(min_x, min_y)
+    mod = lm.Model(Gaussian)
+    peak = roi_x.index(max(roi_x))
+    p_amp = lm.Parameter(name='amp', value=roi_x[peak]-min(roi_x))
+    p_cen = lm.Parameter(name='cen', value=(x_pos[peak]/17.62)/1000)
+    p_wid = lm.Parameter(name='wid', value=(std_plt_x/17.62)/1000)
+    p_off = lm.Parameter(name='off', value=min(roi_x))
+    params = lm.Parameters()
+    params.add_many(p_amp, p_cen, p_wid, p_off)
+    out = mod.fit(np.array(roi_x), params, x=np.array([(x/17.62)/1000 for x in x_pos]))
+    window.camWidget.axes[1].plot(x_pos, roi_x, marker='o', color='tab:orange', linestyle='', markersize=4)
+    window.camWidget.axes[1].plot(x_pos, out.best_fit)
+    vals = out.best_values
+    amp = vals['amp']
+    centre = vals['cen']
+    sigma = vals['wid']
+    mod = lm.Model(Gaussian)
+    peak = roi_y.index(max(roi_y))
+    p_amp = lm.Parameter(name='amp', value=roi_y[peak]-min(roi_y))
+    p_cen = lm.Parameter(name='cen', value=(y_pos[peak]/17.62)/1000)
+    p_wid = lm.Parameter(name='wid', value=(std_plt_y/17.62)/1000)
+    p_off = lm.Parameter(name='off', value=min(roi_y))
+    params = lm.Parameters()
+    params.add_many(p_amp, p_cen, p_wid, p_off)
+    out = mod.fit(np.array(roi_y), params, x=np.array([(x/17.62)/1000 for x in y_pos]))
+    best_fit = list(out.best_fit)
+    best_fit.reverse()
+    r_roi_y = roi_y.copy()
+    r_roi_y.reverse()
+    window.camWidget.axes[2].plot(r_roi_y, y_pos, marker='o', color='tab:orange', linestyle='', markersize=4)
+    window.camWidget.axes[2].plot(best_fit, y_pos)
+    vals = out.best_values
+    yamp = vals['amp']
+    ycentre = vals['cen']
+    ysigma = vals['wid']
+    window.camWidget.axes[0].imshow(image, cmap="gray")
+    window.camWidget.axes[0].title.set_text("Camera View")
+    window.camWidget.axes[1].title.set_text("X-Axis Profile")
+    window.camWidget.axes[2].title.set_text("Y-Axis Profile")
+    window.camWidget.draw()
+    window.camWidget.axes[0].cla()
+    window.camWidget.axes[1].cla()
+    window.camWidget.axes[2].cla()
+    time.sleep(3)
+    
+    return (roi_x, roi_y, x_pos, y_pos, amp, centre, sigma, yamp, ycentre, ysigma)
 
 
 if __name__ == "__main__":

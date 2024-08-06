@@ -66,22 +66,37 @@ class CamTrigger(threading.Thread):
         peakX = binx.index(max(binx))
         peakY = biny.index(max(biny))
         x1d, y1d = MotTemp.get1DArray(image, peakX, peakY)
-        stdx, stdy = MotTemp.getStdDev(image)
+        if self.window.isAuto:
+            stdx, stdy = MotTemp.getStdDev(image)
 
-        stdx = math.floor(stdx)
-        stdy = math.floor(stdy)
+            stdx = math.floor(stdx)
+            stdy = math.floor(stdy)
 
-        print(stdx)
-        print(stdy)
+            print(stdx)
+            print(stdy)
 
-        roi_x, roi_y = MotTemp.getROI(image, stdx, stdy, peakX, peakY, self.window.sigFactor)
+            roi_x, roi_y = MotTemp.getROI(image, stdx, stdy, peakX, peakY, self.window.sigFactor)
 
-        for j in range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*self.window.sigFactor)))):
-            image[max(0, peakY-(stdy))][j] = 65535
-            image[min(len(image)-1, peakY+(stdy*self.window.sigFactor))][j] = 65535
-        for i in range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)):
-            image[i][max(0, peakX-(stdx*self.window.sigFactor))] = 65535
-            image[i][min(len(image[i])-1, peakX+(stdx*self.window.sigFactor))] = 65535
+            for j in range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*self.window.sigFactor)))):
+                image[max(0, peakY-(stdy))][j] = 65535
+                image[min(len(image)-1, peakY+(stdy*self.window.sigFactor))][j] = 65535
+            for i in range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)):
+                image[i][max(0, peakX-(stdx*self.window.sigFactor))] = 65535
+                image[i][min(len(image[i])-1, peakX+(stdx*self.window.sigFactor))] = 65535
+            x_pos = list(range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[0]), math.floor(peakX + (stdx*self.window.sigFactor)))))
+            y_pos = list(range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)))
+        else:
+            roi_x, roi_y = MotTemp.getManualROI(image, self.window.corners, peakX, peakY)
+            x1, y1 = self.window.corners[0]
+            x2, y2 = self.window.corners[1]
+            for j in range(x1, x2+1):
+                image[y1][j] = 65535
+                image[y2][j] = 65535
+            for i in range(y1, y2+1):
+                image[i][x1] = 65535
+                image[i][x2] = 65535
+            x_pos = list(range(x1,x2+1))
+            y_pos = list(range(y1,y2+1))
 
         for i in range(len(image)):
             image[i][peakX] = 65535
@@ -95,9 +110,6 @@ class CamTrigger(threading.Thread):
         min_roi_y = list(np_roi_y - min(roi_y))
 
         std_roi_x, std_roi_y = MotTemp.getROIStdDev(min_roi_x, min_roi_y)
-
-        x_pos = list(range(max(0, math.floor(peakX - (stdx*self.window.sigFactor))), min(len(image[0]), math.floor(peakX + (stdx*self.window.sigFactor)))))
-        y_pos = list(range(max(0, math.floor(peakY - (stdy*self.window.sigFactor))), min(len(image), math.floor(peakY + (stdy*self.window.sigFactor))+1)))
 
         mod = lm.Model(Gaussian)
         peak = roi_x.index(max(roi_x))
@@ -123,8 +135,8 @@ class CamTrigger(threading.Thread):
         self.window.camWidget.axes[2].plot(best_fit, y_pos)
 
         y1d.reverse()
-        self.window.camWidget.axes[1].scatter(range(len(x1d)), x1d, c='tab:orange')
-        self.window.camWidget.axes[2].scatter(y1d, range(len(y1d)), c='tab:orange')
+        self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=6)
+        self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=6)
 
         self.window.camWidget.axes[0].imshow(image, cmap="gray")
         self.window.camWidget.axes[0].title.set_text("Camera View")
@@ -634,7 +646,7 @@ class CamTrigger(threading.Thread):
         # Release system instance
         system.ReleaseInstance()
 
-        MotTemp.main(self.trigPath, self.numImages, self.window, self.timeSplit, self.window.sigFactor)
+        MotTemp.main(self.trigPath, self.numImages, self.window, self.timeSplit)
 
         return result
 

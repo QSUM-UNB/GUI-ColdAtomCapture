@@ -72,9 +72,10 @@ class MainWindow(QtWidgets.QMainWindow):
         dateObj = QtCore.QDate(curYear, curMonth, curDay)
         self.recallDateBox.setDate(dateObj)
         self.loadTofCheck.stateChanged.connect(self.loadTofChanged)
-        self.exposure = 0
-        self.sigFactor = 0
+        self.exposure = 100
+        self.sigFactor = 1
         self.corners = [(0,0), (0,0)]
+        self.isAuto = True
     def camModeChanged(self, index):
         change = True if index == 0 else False
         self.exposureBox.setEnabled(change)
@@ -91,7 +92,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.roiBottomRightEdit.setEnabled(s)
     def updateCamera(self):
         self.exposure = self.exposureBox.value()
-        if self.roiAutoRadio.isChecked():
+        self.isAuto = self.roiAutoRadio.isChecked()
+        if self.isAuto:
             self.sigFactor = self.sigmaBox.value()
         else:
             topL = self.roiTopLeftEdit.text().split(',')
@@ -124,6 +126,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
             )
             return
+        self.tofStartBox.setEnabled(False)
+        self.tofEndBox.setEnabled(False)
+        self.tofSplitBox.setEnabled(False)
         timeSplit = list(np.linspace(self.tofStartBox.value(), self.tofEndBox.value(), self.tofSplitBox.value()))
         self.updateCamera()
         if self.camModeCombo.currentIndex() == 0:
