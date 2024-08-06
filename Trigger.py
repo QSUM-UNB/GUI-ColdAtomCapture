@@ -127,20 +127,18 @@ class CamTrigger(threading.Thread):
         params.add_many(p_amp, p_cen, p_wid, p_off)
         out = mod.fit(np.array(roi_y), params, x=np.array(y_pos))
         ycentre = out.best_values['cen']
-        best_fit = list(out.best_fit)
-        best_fit.reverse()
-        self.window.camWidget.axes[2].plot(best_fit, y_pos)
+        self.window.camWidget.axes[2].plot(out.best_fit, y_pos)
 
         for i in range(len(image)):
             image[i][math.floor(centre)] = 65535
         for j in range(len(image[0])):
             image[math.floor(ycentre)][j] = 65535
 
-        y1d.reverse()
         self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=4)
         self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=4)
 
         self.window.camWidget.axes[0].imshow(image, cmap="gray")
+        self.window.camWidget.axes[2].invert_yaxis()
         self.window.camWidget.axes[0].title.set_text("Camera View")
         self.window.camWidget.axes[1].title.set_text("X-Axis Profile")
         self.window.camWidget.axes[2].title.set_text("Y-Axis Profile")

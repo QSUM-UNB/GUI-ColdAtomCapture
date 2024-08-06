@@ -22,6 +22,7 @@ class MplCanvasCam(FigureCanvasQTAgg):
         self.axes.append(fig.add_subplot(gs[1:,:2]))
         self.axes.append(fig.add_subplot(gs[0,:2]))
         self.axes.append(fig.add_subplot(gs[1:,2]))
+        self.axes[2].invert_yaxis()
         self.axes[0].title.set_text("Camera View")
         self.axes[1].title.set_text("X-Axis Profile")
         self.axes[2].title.set_text("Y-Axis Profile")

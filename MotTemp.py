@@ -264,12 +264,8 @@ def findStdDev(file, window):
     params = lm.Parameters()
     params.add_many(p_amp, p_cen, p_wid, p_off)
     out = mod.fit(np.array(roi_y), params, x=np.array([(x/17.62)/1000 for x in y_pos]))
-    best_fit = list(out.best_fit)
-    best_fit.reverse()
-    r_roi_y = roi_y.copy()
-    r_roi_y.reverse()
-    window.camWidget.axes[2].plot(r_roi_y, y_pos, marker='o', color='tab:orange', linestyle='', markersize=4)
-    window.camWidget.axes[2].plot(best_fit, y_pos)
+    window.camWidget.axes[2].plot(roi_y, y_pos, marker='o', color='tab:orange', linestyle='', markersize=4)
+    window.camWidget.axes[2].plot(out.best_fit, y_pos)
     vals = out.best_values
     yamp = vals['amp']
     ycentre = vals['cen']
@@ -279,6 +275,7 @@ def findStdDev(file, window):
     for j in range(len(image[0])):
         image[math.floor(ycentre*1000*17.62)][j] = 65535
     window.camWidget.axes[0].imshow(image, cmap="gray")
+    window.camWidget.axes[2].invert_yaxis()
     window.camWidget.axes[0].title.set_text("Camera View")
     window.camWidget.axes[1].title.set_text("X-Axis Profile")
     window.camWidget.axes[2].title.set_text("Y-Axis Profile")
