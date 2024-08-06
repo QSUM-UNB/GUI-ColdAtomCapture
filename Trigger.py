@@ -135,8 +135,8 @@ class CamTrigger(threading.Thread):
         self.window.camWidget.axes[2].plot(best_fit, y_pos)
 
         y1d.reverse()
-        self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=6)
-        self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=6)
+        self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=4)
+        self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=4)
 
         self.window.camWidget.axes[0].imshow(image, cmap="gray")
         self.window.camWidget.axes[0].title.set_text("Camera View")
