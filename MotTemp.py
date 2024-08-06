@@ -97,9 +97,10 @@ def main(baseDir, numImages, window, timeSplit):
     window.analysisWidget.axes[2][0].set_ylabel("Position (m)")
     window.analysisWidget.draw()
     window.statusbar.showMessage("Processing finished.")
-    window.tofStartBox.setEnabled(True)
-    window.tofEndBox.setEnabled(True)
-    window.tofSplitBox.setEnabled(True)
+    if window.mode == 0:
+        window.tofStartBox.setEnabled(True)
+        window.tofEndBox.setEnabled(True)
+        window.tofSplitBox.setEnabled(True)
 
 def getIntegratedBins(image:np.ndarray) -> tuple[list[int],list[int]]:
     binx = []
@@ -234,11 +235,6 @@ def findStdDev(file, window):
         x_pos = list(range(x1,x2+1))
         y_pos = list(range(y1,y2+1))
 
-    for i in range(len(image)):
-        image[i][peakX] = 65535
-    for j in range(len(image[0])):
-        image[peakY][j] = 65535
-
     np_x = np.asarray(roi_x)
     np_y = np.asarray(roi_y)
     min_x = list(np_x - min(roi_x))
@@ -278,6 +274,10 @@ def findStdDev(file, window):
     yamp = vals['amp']
     ycentre = vals['cen']
     ysigma = vals['wid']
+    for i in range(len(image)):
+        image[i][math.floor(centre*1000*17.62)] = 65535
+    for j in range(len(image[0])):
+        image[math.floor(ycentre*1000*17.62)][j] = 65535
     window.camWidget.axes[0].imshow(image, cmap="gray")
     window.camWidget.axes[0].title.set_text("Camera View")
     window.camWidget.axes[1].title.set_text("X-Axis Profile")

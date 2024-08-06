@@ -83,6 +83,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.recallRunBox.setEnabled(not change)
         self.loadTofCheck.setEnabled(not change)
         self.loadTofBox.setEnabled(not change and self.loadTofCheck.isChecked())
+        self.tofStartBox.setEnabled(change)
+        self.tofEndBox.setEnabled(change)
+        self.tofSplitBox.setEnabled(change)
     def loadTofChanged(self):
         self.loadTofBox.setEnabled(self.loadTofCheck.isChecked())
     def roiAutoChanged(self, s):
@@ -117,21 +120,25 @@ class MainWindow(QtWidgets.QMainWindow):
                     defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
                 )         
     def runCameraTrigger(self):
-        if self.tofStartBox.value() == 0.0 or self.tofEndBox.value() == 0.0 or self.tofSplitBox.value() == 0:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "TOF Warning",
-                "One of the TOF fields is empty. Please verify and run again.",
-                buttons=QtWidgets.QMessageBox.StandardButton.Ok,
-                defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
-            )
-            return
         self.tofStartBox.setEnabled(False)
         self.tofEndBox.setEnabled(False)
         self.tofSplitBox.setEnabled(False)
-        timeSplit = list(np.linspace(self.tofStartBox.value(), self.tofEndBox.value(), self.tofSplitBox.value()))
         self.updateCamera()
-        if self.camModeCombo.currentIndex() == 0:
+        self.mode = self.camModeCombo.currentIndex()
+        if self.mode == 0:
+            if self.tofStartBox.value() == 0.0 or self.tofEndBox.value() == 0.0 or self.tofSplitBox.value() == 0:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "TOF Warning",
+                    "One of the TOF fields is empty. Please verify and run again.",
+                    buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                    defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
+                )
+                self.tofStartBox.setEnabled(True)
+                self.tofEndBox.setEnabled(True)
+                self.tofSplitBox.setEnabled(True)
+                return
+            timeSplit = list(np.linspace(self.tofStartBox.value(), self.tofEndBox.value(), self.tofSplitBox.value()))
             for i in range(3):
                 for j in range(2):
                     self.analysisWidget.axes[i][j].clear()
@@ -140,7 +147,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.camThread = Trigger.CamTrigger(self.tofSplitBox.value(), f"{self.trigPath}Run{self.runCount}/", timeSplit, self)
             self.runCount += 1
             self.camThread.start()
-            
         else:
             date = self.recallDateBox.date().toPyDate()
             run = self.recallRunBox.value()
@@ -156,7 +162,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
                 )
                 return
-            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, self.tofSplitBox.value(), self, timeSplit])
+            settingsIn = open(f"{baseDir}settings.txt", 'r')
+            tofData = settingsIn.read().split("\n")[0].split(",")
+            print(tofData)
+            timeSplit = np.linspace(float(tofData[0]),float(tofData[1]),int(tofData[2]))
+            print(timeSplit)
+            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, len(timeSplit), self, timeSplit])
             self.camThread.start()
 
 def main():

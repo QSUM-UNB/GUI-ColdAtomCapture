@@ -98,11 +98,6 @@ class CamTrigger(threading.Thread):
             x_pos = list(range(x1,x2+1))
             y_pos = list(range(y1,y2+1))
 
-        for i in range(len(image)):
-            image[i][peakX] = 65535
-        for j in range(len(image[0])):
-            image[peakY][j] = 65535
-
         np_roi_x = np.asarray(roi_x)
         min_roi_x = list(np_roi_x - min(roi_x))
 
@@ -121,6 +116,7 @@ class CamTrigger(threading.Thread):
         params.add_many(p_amp, p_cen, p_wid, p_off)
         out = mod.fit(np.array(roi_x), params, x=np.array(x_pos))
         self.window.camWidget.axes[1].plot(x_pos, out.best_fit)
+        centre = out.best_values['cen']
         mod = lm.Model(Gaussian)
         peak = roi_y.index(max(roi_y))
         p_wid = lm.Parameter(name='wid', value=std_roi_y)
@@ -130,9 +126,15 @@ class CamTrigger(threading.Thread):
         params = lm.Parameters()
         params.add_many(p_amp, p_cen, p_wid, p_off)
         out = mod.fit(np.array(roi_y), params, x=np.array(y_pos))
+        ycentre = out.best_values['cen']
         best_fit = list(out.best_fit)
         best_fit.reverse()
         self.window.camWidget.axes[2].plot(best_fit, y_pos)
+
+        for i in range(len(image)):
+            image[i][math.floor(centre)] = 65535
+        for j in range(len(image[0])):
+            image[math.floor(ycentre)][j] = 65535
 
         y1d.reverse()
         self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=4)
@@ -645,6 +647,12 @@ class CamTrigger(threading.Thread):
 
         # Release system instance
         system.ReleaseInstance()
+
+        writeSettings = open(f"{self.trigPath}settings.txt", 'x')
+        startTime = self.timeSplit[0]
+        endTime = self.timeSplit[len(self.timeSplit)-1]
+        splits = len(self.timeSplit)
+        writeSettings.write(f"{startTime},{endTime},{splits}\n{self.window.exposure}\n")
 
         MotTemp.main(self.trigPath, self.numImages, self.window, self.timeSplit)
 
