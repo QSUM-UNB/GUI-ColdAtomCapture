@@ -115,6 +115,7 @@ class CamTrigger(threading.Thread):
         params = lm.Parameters()
         params.add_many(p_amp, p_cen, p_wid, p_off)
         out = mod.fit(np.array(roi_x), params, x=np.array(x_pos))
+        self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=4)
         self.window.camWidget.axes[1].plot(x_pos, out.best_fit)
         centre = out.best_values['cen']
         mod = lm.Model(Gaussian)
@@ -127,15 +128,13 @@ class CamTrigger(threading.Thread):
         params.add_many(p_amp, p_cen, p_wid, p_off)
         out = mod.fit(np.array(roi_y), params, x=np.array(y_pos))
         ycentre = out.best_values['cen']
+        self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=4)
         self.window.camWidget.axes[2].plot(out.best_fit, y_pos)
 
         for i in range(len(image)):
             image[i][math.floor(centre)] = 65535
         for j in range(len(image[0])):
             image[math.floor(ycentre)][j] = 65535
-
-        self.window.camWidget.axes[1].plot(range(len(x1d)), x1d, marker='o', color='tab:orange', linestyle='', markersize=4)
-        self.window.camWidget.axes[2].plot(y1d, range(len(y1d)), marker='o', color='tab:orange', linestyle='', markersize=4)
 
         self.window.camWidget.axes[0].imshow(image, cmap="gray")
         self.window.camWidget.axes[2].invert_yaxis()
