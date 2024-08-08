@@ -488,23 +488,6 @@
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1029</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-    <addaction name="actionCamera"/>
-   </widget>
-   <addaction name="menuSettings"/>
-  </widget>
   <action name="actionCamera">
    <property name="text">
     <string>Camera</string>
