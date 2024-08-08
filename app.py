@@ -77,6 +77,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sigFactor = 1
         self.corners = [(0,0), (0,0)]
         self.isAuto = True
+        self.camThread = None
     def camModeChanged(self, index):
         change = True if index == 0 else False
         self.exposureBox.setEnabled(change)
@@ -121,6 +122,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
                 )         
     def runCameraTrigger(self):
+        if self.camThread != None:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Run In Progress",
+                "There is already a run in progress. Please wait for the run to finish.",
+                buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
+            )
         self.tofStartBox.setEnabled(False)
         self.tofEndBox.setEnabled(False)
         self.tofSplitBox.setEnabled(False)

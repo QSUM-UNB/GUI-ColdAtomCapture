@@ -101,6 +101,7 @@ def main(baseDir, numImages, window, timeSplit):
         window.tofStartBox.setEnabled(True)
         window.tofEndBox.setEnabled(True)
         window.tofSplitBox.setEnabled(True)
+    window.camThread = None
 
 def getIntegratedBins(image:np.ndarray) -> tuple[list[int],list[int]]:
     binx = []
