@@ -22,7 +22,6 @@ class MplCanvasCam(FigureCanvasQTAgg):
         self.axes.append(fig.add_subplot(gs[1:,:2]))
         self.axes.append(fig.add_subplot(gs[0,:2]))
         self.axes.append(fig.add_subplot(gs[1:,2]))
-        self.axes[2].invert_yaxis()
         self.axes[0].title.set_text("Camera View")
         self.axes[1].title.set_text("X-Axis Profile")
         self.axes[2].title.set_text("Y-Axis Profile")
@@ -78,23 +77,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.corners = [(0,0), (0,0)]
         self.isAuto = True
         self.camThread = None
+        self.singleFileButton.pressed.connect(self.getSingleFile)
     def camModeChanged(self, index):
         change = True if index == 0 else False
         self.exposureBox.setEnabled(change)
-        self.recallDateBox.setEnabled(not change)
-        self.recallRunBox.setEnabled(not change)
+        self.recallDateBox.setEnabled(not change and not self.loadTofCheck.isChecked())
+        self.recallRunBox.setEnabled(not change and not self.loadTofCheck.isChecked())
         self.loadTofCheck.setEnabled(not change)
-        self.loadTofBox.setEnabled(not change and self.loadTofCheck.isChecked())
+        self.singleFileButton.setEnabled(not change and self.loadTofCheck.isChecked())
         self.tofStartBox.setEnabled(change)
         self.tofEndBox.setEnabled(change)
         self.tofSplitBox.setEnabled(change)
     def loadTofChanged(self):
-        self.loadTofBox.setEnabled(self.loadTofCheck.isChecked())
+        self.singleFileButton.setEnabled(self.loadTofCheck.isChecked())
+        self.recallDateBox.setEnabled(not self.loadTofCheck.isChecked())
+        self.recallRunBox.setEnabled(not self.loadTofCheck.isChecked())
     def roiAutoChanged(self, s):
         self.sigmaBox.setEnabled(s)
     def roiManualChanged(self, s):
         self.roiTopLeftEdit.setEnabled(s)
         self.roiBottomRightEdit.setEnabled(s)
+    def getSingleFile(self):
+        if self.singleFileLine.text() == "":
+            getFile = QtWidgets.QFileDialog.getOpenFileName(self, "Save As...", f"{os.getcwd()}/Data/", "TIFF (*.tiff)")
+        else:
+            oldFile = self.singleFileLine.text()
+            getFile = QtWidgets.QFileDialog.getOpenFileName(self, "Save As...", f"{oldFile}", "TIFF (*.tiff)")
+        if len(getFile[0]) > 0:
+            self.singleFileLine.setText(getFile[0])
     def updateCamera(self):
         self.exposure = self.exposureBox.value()
         self.isAuto = self.roiAutoRadio.isChecked()
@@ -157,6 +167,18 @@ class MainWindow(QtWidgets.QMainWindow):
             self.camThread = Trigger.CamTrigger(self.tofSplitBox.value(), f"{self.trigPath}Run{self.runCount}/", timeSplit, self)
             self.runCount += 1
             self.camThread.start()
+        elif self.loadTofCheck.isChecked():
+            if self.singleFileLine.text() == "":
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Single File Warning",
+                    "A file has not been selected. Please select a file.",
+                    buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                    defaultButton=QtWidgets.QMessageBox.StandardButton.Ok
+                )
+            self.statusbar.showMessage("Processing single file...")
+            self.camThread = threading.Thread(None, MotTemp.runSingleImage, None, [self.singleFileLine.text(), self])
+            self.camThread.start()
         else:
             date = self.recallDateBox.date().toPyDate()
             run = self.recallRunBox.value()
@@ -177,7 +199,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print(tofData)
             timeSplit = np.linspace(float(tofData[0]),float(tofData[1]),int(tofData[2]))
             print(timeSplit)
-            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, len(timeSplit), self, timeSplit])
+            self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, len(timeSplit), self, timeSplit.tolist()])
             self.camThread.start()
 
 def main():

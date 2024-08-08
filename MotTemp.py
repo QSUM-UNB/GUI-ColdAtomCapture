@@ -32,7 +32,20 @@ def main(baseDir, numImages, window, timeSplit):
     ysigma = [None]*len(fileArr)
     for i in range(0, len(fileArr)):
         window.statusbar.showMessage(f"Processing image {i+1} of {numImages}...")
-        plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = findStdDev(fileArr[i], window)
+        retVal = findStdDev(fileArr[i], window)
+        if retVal == None:
+            plt_x.pop(i)
+            plt_y.pop(i)
+            x_pos.pop(i)
+            y_pos.pop(i)
+            amp.pop(i)
+            centre.pop(i)
+            sigma.pop(i)
+            yamp.pop(i)
+            ycentre.pop(i)
+            ysigma.pop(i)
+            timeSplit.pop(i)
+        plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = retVal
     
     window.statusbar.showMessage("Fitting data...")
     
@@ -202,9 +215,19 @@ def getROIStdDev(roi_x:list, roi_y:list) -> tuple[float,float]:
     stdx = math.sqrt(varx)
     stdy = math.sqrt(vary)
     return (stdx, stdy)
+
+def runSingleImage(file, window) -> None:
+    findStdDev(file, window)
+    window.camThread = None
+    window.statusbar.showMessage("Processing finished.")
+    return
     
 def findStdDev(file, window):
     image = cv2.imread(file, flags=cv2.IMREAD_ANYDEPTH)
+    if type(image) == type(None):
+        window.statusbar.showMessage("Cannot find file. Skipping...")
+        time.sleep(3)
+        return None
     image = np.asarray(image, dtype=np.float64)
     binx, biny = getIntegratedBins(image)
     peakX = binx.index(max(binx))
