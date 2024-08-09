@@ -46,6 +46,14 @@ def main(baseDir, numImages, window, timeSplit):
             ysigma.pop(i)
             timeSplit.pop(i)
         plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = retVal
+
+    if len(plt_x) == 0:
+        window.statusbar.showMessage("ERROR: No images were loaded")
+        if window.mode == 0:
+            window.tofStartBox.setEnabled(True)
+            window.tofEndBox.setEnabled(True)
+            window.tofSplitBox.setEnabled(True)
+        window.camThread = None
     
     window.statusbar.showMessage("Fitting data...")
     
@@ -108,6 +116,9 @@ def main(baseDir, numImages, window, timeSplit):
     window.analysisWidget.axes[0][0].set_ylabel("Pixel Intensity")
     window.analysisWidget.axes[1][0].set_ylabel("Position (m)")
     window.analysisWidget.axes[2][0].set_ylabel("Position (m)")
+    for a in window.analysisWidget.axes:
+        for e in a:
+            e.cla()
     window.analysisWidget.draw()
     window.statusbar.showMessage("Processing finished.")
     if window.mode == 0:
