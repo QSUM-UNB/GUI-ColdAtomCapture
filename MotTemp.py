@@ -16,6 +16,9 @@ def Hyperbolic(x, s0, sv):
     return np.sqrt(s0**2 + (sv**2 * x**2))
 
 def main(baseDir, numImages, window, timeSplit):
+    for a in window.analysisWidget.axes:
+        for e in a:
+            e.cla()
     fileArr = []
     #backArr = []
     timeArr = []
@@ -39,8 +42,7 @@ def main(baseDir, numImages, window, timeSplit):
     ysigma = [None]*len(fileArr)
     for i in range(0, len(fileArr)):
         window.statusbar.showMessage(f"Processing image {i+1} of {numImages}...")
-        retVal = findStdDev(fileArr[i], window)
-        plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = retVal
+        plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = findStdDev(fileArr[i], window)
 
     if len(plt_x) == 0:
         window.statusbar.showMessage("ERROR: No images were loaded")
@@ -111,9 +113,6 @@ def main(baseDir, numImages, window, timeSplit):
     window.analysisWidget.axes[0][0].set_ylabel("Pixel Intensity")
     window.analysisWidget.axes[1][0].set_ylabel("Position (m)")
     window.analysisWidget.axes[2][0].set_ylabel("Position (m)")
-    for a in window.analysisWidget.axes:
-        for e in a:
-            e.cla()
     window.analysisWidget.draw()
     window.statusbar.showMessage("Processing finished.")
     if window.mode == 0:
@@ -313,7 +312,7 @@ def findStdDev(file, window):
     window.camWidget.axes[0].cla()
     window.camWidget.axes[1].cla()
     window.camWidget.axes[2].cla()
-    time.sleep(3)
+    time.sleep(window.delay)
     
     return (roi_x, roi_y, x_pos, y_pos, amp, centre, sigma, yamp, ycentre, ysigma)
 

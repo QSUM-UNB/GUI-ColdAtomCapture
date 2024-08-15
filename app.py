@@ -76,6 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sigFactor = 1
         self.corners = [(0,0), (0,0)]
         self.isAuto = True
+        self.delay = 0
         self.camThread = None
         self.singleFileButton.pressed.connect(self.getSingleFile)
     def camModeChanged(self, index):
@@ -108,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def updateCamera(self):
         self.exposure = self.exposureBox.value()
         self.isAuto = self.roiAutoRadio.isChecked()
+        self.delay = self.delayBox.value()
         if self.isAuto:
             self.sigFactor = self.sigmaBox.value()
         else:

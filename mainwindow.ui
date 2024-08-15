@@ -37,7 +37,7 @@
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_6">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <layout class="QHBoxLayout" name="tofStartLayout">
                   <item>
                    <widget class="QLabel" name="tofLabel">
                     <property name="text">
@@ -64,7 +64,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <layout class="QHBoxLayout" name="tofEndLayout">
                   <item>
                    <widget class="QLabel" name="label">
                     <property name="text">
@@ -91,7 +91,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <layout class="QHBoxLayout" name="tofStepsLayout">
                   <item>
                    <widget class="QLabel" name="tofSplitLabel">
                     <property name="text">
@@ -302,6 +302,33 @@
                     </property>
                     <property name="minimum">
                      <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="delayLabel">
+                    <property name="text">
+                     <string>Processing delay (s):</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="delayBox">
+                    <property name="minimumSize">
+                     <size>
+                      <width>100</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
                     </property>
                    </widget>
                   </item>
