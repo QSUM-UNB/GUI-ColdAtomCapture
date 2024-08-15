@@ -6,6 +6,7 @@ from lmfit.models import QuadraticModel, LinearModel
 import lmfit as lm
 from PyQt6.QtGui import QTextDocument
 import time
+import os
 
 def Gaussian(x, amp, cen, wid, off):
     """1-d Gaussian: gaussian(x, amp, cen, wid, off)"""
@@ -17,8 +18,14 @@ def Hyperbolic(x, s0, sv):
 def main(baseDir, numImages, window, timeSplit):
     fileArr = []
     #backArr = []
+    timeArr = []
     for e in range(numImages):
-        fileArr.append(f"{baseDir}CloudDetection_TOF-{timeSplit[e]}ms.tiff")
+        newFile = f"{baseDir}CloudDetection_TOF-{timeSplit[e]}ms.tiff"
+        if os.path.exists(newFile):
+            fileArr.append(f"{baseDir}CloudDetection_TOF-{timeSplit[e]}ms.tiff")
+            timeArr.append(timeSplit[e])
+        else:
+            numImages -= 1
         #backArr.append("../MotTemp/Pics5/2024-06-24_CloudDetection_TOF_background_01.tiff")
     plt_x = [None]*len(fileArr)
     plt_y = [None]*len(fileArr)
@@ -33,18 +40,6 @@ def main(baseDir, numImages, window, timeSplit):
     for i in range(0, len(fileArr)):
         window.statusbar.showMessage(f"Processing image {i+1} of {numImages}...")
         retVal = findStdDev(fileArr[i], window)
-        if retVal == None:
-            plt_x.pop(i)
-            plt_y.pop(i)
-            x_pos.pop(i)
-            y_pos.pop(i)
-            amp.pop(i)
-            centre.pop(i)
-            sigma.pop(i)
-            yamp.pop(i)
-            ycentre.pop(i)
-            ysigma.pop(i)
-            timeSplit.pop(i)
         plt_x[i], plt_y[i], x_pos[i], y_pos[i], amp[i], centre[i], sigma[i], yamp[i], ycentre[i], ysigma[i] = retVal
 
     if len(plt_x) == 0:
@@ -57,7 +52,7 @@ def main(baseDir, numImages, window, timeSplit):
     
     window.statusbar.showMessage("Fitting data...")
     
-    axis_pts_ms = [x/1000 for x in timeSplit]
+    axis_pts_ms = [x/1000 for x in timeArr]
     runningString = ""
 
     mod = QuadraticModel()

@@ -95,7 +95,7 @@
                   <item>
                    <widget class="QLabel" name="tofSplitLabel">
                     <property name="text">
-                     <string>Split:</string>
+                     <string>TOF Steps:</string>
                     </property>
                    </widget>
                   </item>
