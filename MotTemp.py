@@ -272,12 +272,12 @@ def findStdDev(file, window):
     mod = lm.Model(Gaussian)
     peak = roi_x.index(max(roi_x))
     p_amp = lm.Parameter(name='amp', value=roi_x[peak]-min(roi_x))
-    p_cen = lm.Parameter(name='cen', value=(x_pos[peak]/17.62)/1000)
-    p_wid = lm.Parameter(name='wid', value=(std_plt_x/17.62)/1000)
+    p_cen = lm.Parameter(name='cen', value=(x_pos[peak]/window.pixelRatio)/1000)
+    p_wid = lm.Parameter(name='wid', value=(std_plt_x/window.pixelRatio)/1000)
     p_off = lm.Parameter(name='off', value=min(roi_x))
     params = lm.Parameters()
     params.add_many(p_amp, p_cen, p_wid, p_off)
-    out = mod.fit(np.array(roi_x), params, x=np.array([(x/17.62)/1000 for x in x_pos]))
+    out = mod.fit(np.array(roi_x), params, x=np.array([(x/window.pixelRatio)/1000 for x in x_pos]))
     window.camWidget.axes[1].plot(x_pos, roi_x, marker='o', color='tab:orange', linestyle='', markersize=4)
     window.camWidget.axes[1].plot(x_pos, out.best_fit)
     vals = out.best_values
@@ -287,12 +287,12 @@ def findStdDev(file, window):
     mod = lm.Model(Gaussian)
     peak = roi_y.index(max(roi_y))
     p_amp = lm.Parameter(name='amp', value=roi_y[peak]-min(roi_y))
-    p_cen = lm.Parameter(name='cen', value=(y_pos[peak]/17.62)/1000)
-    p_wid = lm.Parameter(name='wid', value=(std_plt_y/17.62)/1000)
+    p_cen = lm.Parameter(name='cen', value=(y_pos[peak]/window.pixelRatio)/1000)
+    p_wid = lm.Parameter(name='wid', value=(std_plt_y/window.pixelRatio)/1000)
     p_off = lm.Parameter(name='off', value=min(roi_y))
     params = lm.Parameters()
     params.add_many(p_amp, p_cen, p_wid, p_off)
-    out = mod.fit(np.array(roi_y), params, x=np.array([(x/17.62)/1000 for x in y_pos]))
+    out = mod.fit(np.array(roi_y), params, x=np.array([(x/window.pixelRatio)/1000 for x in y_pos]))
     window.camWidget.axes[2].plot(roi_y, y_pos, marker='o', color='tab:orange', linestyle='', markersize=4)
     window.camWidget.axes[2].plot(out.best_fit, y_pos)
     vals = out.best_values
@@ -300,9 +300,9 @@ def findStdDev(file, window):
     ycentre = vals['cen']
     ysigma = vals['wid']
     for i in range(len(image)):
-        image[i][math.floor(centre*1000*17.62)] = 65535
+        image[i][math.floor(centre*1000*window.pixelRatio)] = 65535
     for j in range(len(image[0])):
-        image[math.floor(ycentre*1000*17.62)][j] = 65535
+        image[math.floor(ycentre*1000*window.pixelRatio)][j] = 65535
     window.camWidget.axes[0].imshow(image, cmap="gray")
     window.camWidget.axes[2].invert_yaxis()
     window.camWidget.axes[0].title.set_text("Camera View")

@@ -308,7 +308,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <layout class="QHBoxLayout" name="delayLayout">
                   <item>
                    <widget class="QLabel" name="delayLabel">
                     <property name="text">
@@ -329,6 +329,36 @@
                       <width>100</width>
                       <height>16777215</height>
                      </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="ratioLayout">
+                  <item>
+                   <widget class="QLabel" name="ratioLabel">
+                    <property name="text">
+                     <string>Pixel-mm ratio:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="ratioBox">
+                    <property name="minimumSize">
+                     <size>
+                      <width>100</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="value">
+                     <double>17.620000000000001</double>
                     </property>
                    </widget>
                   </item>

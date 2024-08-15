@@ -77,6 +77,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.corners = [(0,0), (0,0)]
         self.isAuto = True
         self.delay = 0
+        self.pixelRatio = 0.
         self.camThread = None
         self.singleFileButton.pressed.connect(self.getSingleFile)
     def camModeChanged(self, index):
@@ -110,6 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exposure = self.exposureBox.value()
         self.isAuto = self.roiAutoRadio.isChecked()
         self.delay = self.delayBox.value()
+        self.pixelRatio = self.ratioBox.value()
         if self.isAuto:
             self.sigFactor = self.sigmaBox.value()
         else:
@@ -198,9 +200,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             settingsIn = open(f"{baseDir}settings.txt", 'r')
             tofData = settingsIn.read().split("\n")[0].split(",")
-            print(tofData)
             timeSplit = np.linspace(float(tofData[0]),float(tofData[1]),int(tofData[2]))
-            print(timeSplit)
             self.camThread = threading.Thread(None, MotTemp.main, None, [baseDir, len(timeSplit), self, timeSplit.tolist()])
             self.camThread.start()
 
