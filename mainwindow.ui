@@ -21,7 +21,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="cameraTab">
           <attribute name="title">
@@ -499,6 +499,16 @@
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="gaussianTab">
+          <attribute name="title">
+           <string>Gaussians</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QTableWidget" name="gaussianTable"/>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="fitTab">
           <attribute name="title">
            <string>Fits</string>
@@ -514,15 +524,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QTextEdit" name="fitText">
+              <widget class="QTableWidget" name="fitTable">
                <property name="minimumSize">
                 <size>
-                 <width>250</width>
+                 <width>300</width>
                  <height>0</height>
                 </size>
-               </property>
-               <property name="readOnly">
-                <bool>true</bool>
                </property>
               </widget>
              </item>

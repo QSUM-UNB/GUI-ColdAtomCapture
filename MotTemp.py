@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import math
 from lmfit.models import QuadraticModel, LinearModel
 import lmfit as lm
-from PyQt6.QtGui import QTextDocument
+from PyQt6.QtWidgets import QTableWidgetItem
 import time
 import os
 
@@ -20,7 +20,6 @@ def main(baseDir, numImages, window, timeSplit):
         for e in a:
             e.cla()
     fileArr = []
-    #backArr = []
     timeArr = []
     for e in range(numImages):
         newFile = f"{baseDir}CloudDetection_TOF-{timeSplit[e]}ms.tiff"
@@ -29,7 +28,6 @@ def main(baseDir, numImages, window, timeSplit):
             timeArr.append(timeSplit[e])
         else:
             numImages -= 1
-        #backArr.append("../MotTemp/Pics5/2024-06-24_CloudDetection_TOF_background_01.tiff")
     plt_x = [None]*len(fileArr)
     plt_y = [None]*len(fileArr)
     x_pos = [None]*len(fileArr)
@@ -53,23 +51,37 @@ def main(baseDir, numImages, window, timeSplit):
         window.camThread = None
     
     window.statusbar.showMessage("Fitting data...")
+
+    window.fitTable.clearContents()
+    window.fitTable.setRowCount(0)
+    window.fitTable.setHorizontalHeaderLabels(["Variable", "Axis", "Type", "Value", "Error"])
     
     axis_pts_ms = [x/1000 for x in timeArr]
-    runningString = ""
+    curRow = 0
 
     mod = QuadraticModel()
     pars = mod.guess(np.array(centre), x=np.array(axis_pts_ms))
     out = mod.fit(np.array(centre), pars, x=np.array(axis_pts_ms))
-    runningString += f"X-axis Centre Results:\na: {out.best_values['a']}\nb: {out.best_values['b']}\nc: {out.best_values['c']}\n\n"
     window.analysisWidget.axes[1][0].plot(axis_pts_ms, out.best_fit)
     window.analysisWidget.axes[1][0].scatter(axis_pts_ms, centre, c='tab:orange')
+    for val in out.params.values():
+        window.fitTable.insertRow(curRow)
+        tableItems = []
+        tableItems.append(QTableWidgetItem(val.name))
+        tableItems.append(QTableWidgetItem("X"))
+        tableItems.append(QTableWidgetItem("Quadratic"))
+        tableItems.append(QTableWidgetItem(str(val.value)))
+        tableItems.append(QTableWidgetItem(str(val.stderr)))
+        for i in range(len(tableItems)):
+            window.fitTable.setItem(curRow, i, tableItems[i])
+        curRow += 1
+
     print(out.fit_report(min_correl=0.25))
 
     mod = QuadraticModel()
     pars = mod.guess(np.array(ycentre), x=np.array(axis_pts_ms))
     out = mod.fit(np.array(ycentre), pars, x=np.array(axis_pts_ms))
     gravity = out.best_values['a'] * 2
-    runningString += f"Y-axis Centre Results:\ng: {gravity}m/s^2\nv_y: {out.best_values['b']}m/s\ny_i: {out.best_values['c']}m\n\n"
     window.analysisWidget.axes[1][1].plot(axis_pts_ms, out.best_fit)
     window.analysisWidget.axes[1][1].scatter(axis_pts_ms, ycentre, c='tab:orange')
     print(out.fit_report(min_correl=0.25))
@@ -78,7 +90,6 @@ def main(baseDir, numImages, window, timeSplit):
     pars = mod.guess(np.array(sigma), x=np.array(axis_pts_ms))
     out = mod.fit(np.array(sigma), pars, x=np.array(axis_pts_ms))
     temp = 0.5 * ((1.44 * math.pow(10,-25))/(1.38 * math.pow(10,-23))) * math.pow(out.best_values['slope'], 2)
-    runningString += f"X-Axis Sigma Results:\nm: {out.best_values['slope']}m/s\nb: {out.best_values['intercept']}m\n Temperature: {temp}K\n\n"
     window.analysisWidget.axes[2][0].plot(axis_pts_ms, out.best_fit)
     window.analysisWidget.axes[2][0].scatter(axis_pts_ms, sigma, c='tab:orange')
     print(out.fit_report(min_correl=0.25))
@@ -90,14 +101,9 @@ def main(baseDir, numImages, window, timeSplit):
     params.add_many(p_s0, p_sv)
     out = mod.fit(np.array(ysigma), params, x=np.array(axis_pts_ms))
     temp = 0.5 * ((1.44 * math.pow(10,-25))/(1.38 * math.pow(10,-23))) * math.pow(out.best_values['sv'], 2)
-    runningString += f"Y-Axis Sigma Results:\ns0: {out.best_values['s0']}\nsv: {out.best_values['sv']}\nTemperature: {temp}K"
     window.analysisWidget.axes[2][1].plot(axis_pts_ms, out.best_fit)
     window.analysisWidget.axes[2][1].scatter(axis_pts_ms, ysigma, c='tab:orange')
     print(out.fit_report(min_correl=0.25))
-
-    text = QTextDocument()
-    text.setPlainText(runningString)
-    window.fitText.setDocument(text)
 
     window.analysisWidget.axes[0][0].scatter(axis_pts_ms, amp, c='tab:orange')
     window.analysisWidget.axes[0][1].scatter(axis_pts_ms, yamp, c='tab:orange')
