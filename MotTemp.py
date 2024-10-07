@@ -78,14 +78,25 @@ def main(baseDir, numImages, window, timeSplit):
     pars = mod.guess(np.array(sigma), x=np.array(axis_pts_ms))
     out = mod.fit(np.array(sigma), pars, x=np.array(axis_pts_ms))
     temp = 0.5 * ((1.44 * math.pow(10,-25))/(1.38 * math.pow(10,-23))) * math.pow(out.best_values['slope'], 2)
-    runningString += f"X-Axis Sigma Results:\nm: {out.best_values['slope']}m/s\nb: {out.best_values['intercept']}m\n Temperature: {temp}K\n\n"
+    print(out.fit_report(min_correl=0.25))
+
+    linear_guess = out.best_values['slope']
+
+    mod = lm.Model(Hyperbolic)
+    p_s0 = lm.Parameter(name='s0', value=sigma[0])
+    p_sv = lm.Parameter(name='sv', value=linear_guess)
+    params = lm.Parameters()
+    params.add_many(p_s0, p_sv)
+    out = mod.fit(np.array(sigma), params, x=np.array(axis_pts_ms))
+    temp = 0.5 * ((1.44 * math.pow(10,-25))/(1.38 * math.pow(10,-23))) * math.pow(out.best_values['sv'], 2)
+    runningString += f"X-Axis Sigma Results:\ns0: {out.best_values['s0']}m/s\nsv: {out.best_values['sv']}m\n Temperature: {temp}K\n\n"
     window.analysisWidget.axes[2][0].plot(axis_pts_ms, out.best_fit)
     window.analysisWidget.axes[2][0].scatter(axis_pts_ms, sigma, c='tab:orange')
     print(out.fit_report(min_correl=0.25))
 
     mod = lm.Model(Hyperbolic)
     p_s0 = lm.Parameter(name='s0', value=ysigma[0])
-    p_sv = lm.Parameter(name='sv', value=out.best_values['slope'])
+    p_sv = lm.Parameter(name='sv', value=linear_guess)
     params = lm.Parameters()
     params.add_many(p_s0, p_sv)
     out = mod.fit(np.array(ysigma), params, x=np.array(axis_pts_ms))
