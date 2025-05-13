@@ -255,7 +255,7 @@ def findStdDev(file, window):
         sigmaFactor = window.sigFactor
         roi_x, roi_y = getROI(image, stdx, stdy, peakX, peakY, sigmaFactor)
         for j in range(max(0, math.floor(peakX - (stdx*sigmaFactor))), min(len(image[peakY]), math.floor(peakX + (stdx*sigmaFactor)))):
-            image[max(0, peakY-(stdy))][j] = 65535
+            image[max(0, peakY-(stdy*sigmaFactor))][j] = 65535
             image[min(len(image)-1, peakY+(stdy*sigmaFactor))][j] = 65535
         for i in range(max(0, math.floor(peakY - (stdy*sigmaFactor))), min(len(image), math.floor(peakY + (stdy*sigmaFactor))+1)):
             image[i][max(0, peakX-(stdx*sigmaFactor))] = 65535
